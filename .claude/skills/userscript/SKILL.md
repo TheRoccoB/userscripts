@@ -61,22 +61,27 @@ git push
 
 The pre-commit hook bumps the patch version of edited scripts and regenerates and stages `INDEX.md`. If the hook fails, fix what it prints and commit again; never use `--no-verify`.
 
-Then confirm the published copy:
+Then wait until the raw URL serves the version you just pushed (the hook may have bumped it, so read it from the committed file). The raw CDN can lag a push by about 5 minutes; poll with a bounded wait instead of opening the link early:
 
 ```sh
-curl -sS https://raw.githubusercontent.com/TheRoccoB/userscripts/main/scripts/<name>.user.js | grep @version
+want=$(grep -m1 '@version' scripts/<name>.user.js)
+for i in $(seq 1 24); do
+    got=$(curl -sS "https://raw.githubusercontent.com/TheRoccoB/userscripts/main/scripts/<name>.user.js?nocache=$i" | grep -m1 '@version')
+    [ "$got" = "$want" ] && { echo "live: $got"; break; }
+    sleep 15
+done
 ```
 
-The raw CDN can lag a push by about 5 minutes. A stale version for an *updated* script is expected; say so instead of retrying in a loop.
+If it still isn't live after the loop, say so in the report and open the link anyway as the last step.
 
-## 7. Install
+## 7. Report
 
-Open the raw URL in Chrome in a tab. Tampermonkey intercepts it, and its install/update screen opens in a separate tab that the browser tools can't see. Don't try to click Install yourself; tell the user to click **Install** (or **Update** / **Reinstall**) in that tab.
-
-## 8. Report
-
-Finish with:
+Give the report before the final step:
 - what the script does and which URLs it runs on
 - what you tested and what you couldn't
 - the version that was pushed
 - the install link
+
+## 8. Open the install link (always the last step)
+
+Always end by opening the raw URL in Chrome, in a new tab, after the report and once the version is live. Do this every time, including for updates to existing scripts, and leave the tab open. Tampermonkey intercepts it, and its install/update screen opens in a separate tab that the browser tools can't see. Don't try to click Install yourself; tell the user to click **Install** (or **Update** / **Reinstall**) in that tab. If it shows plain code instead, they can use Tampermonkey dashboard → **Utilities** → **Import from URL**.
