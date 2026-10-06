@@ -84,7 +84,7 @@ export function metaValues(entries, key) {
 }
 
 export function formatMetaLine(key, value) {
-    const label = `@${key}`.padEnd(13, ' ');
+    const label = `@${key}`.padEnd(14, ' ');
     if (value === '') {
         return `// ${label}`.trimEnd();
     }
