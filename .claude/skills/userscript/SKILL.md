@@ -74,14 +74,15 @@ done
 
 If it still isn't live after the loop, say so in the report and open the link anyway as the last step.
 
-## 7. Report
+## 7. Open the install link (always the last action)
 
-Give the report before the final step:
+Always end by opening the raw URL in Chrome, in a new tab, once the version is live; no tool calls come after it. Do this every time, including for updates to existing scripts, and leave the tab open. Tampermonkey intercepts it, and its install/update screen opens in a separate tab that the browser tools can't see. Don't try to click Install yourself; tell the user to click **Install** (or **Update** / **Reinstall**) in that tab. If it shows plain code instead, they can use Tampermonkey dashboard → **Utilities** → **Import from URL**.
+
+## 8. Report
+
+Finish with a message covering:
 - what the script does and which URLs it runs on
 - what you tested and what you couldn't
 - the version that was pushed
 - the install link
-
-## 8. Open the install link (always the last step)
-
-Always end by opening the raw URL in Chrome, in a new tab, after the report and once the version is live. Do this every time, including for updates to existing scripts, and leave the tab open. Tampermonkey intercepts it, and its install/update screen opens in a separate tab that the browser tools can't see. Don't try to click Install yourself; tell the user to click **Install** (or **Update** / **Reinstall**) in that tab. If it shows plain code instead, they can use Tampermonkey dashboard → **Utilities** → **Import from URL**.
+- that the install tab is open and they should click **Install** / **Update**
