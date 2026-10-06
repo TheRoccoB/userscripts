@@ -1,0 +1,19 @@
+{
+  "name": "userscripts",
+  "private": true,
+  "description": "Personal Tampermonkey userscripts",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheRoccoB/userscripts.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "setup": "node tools/setup.mjs",
+    "new": "node tools/new.mjs",
+    "dev": "node tools/dev.mjs",
+    "index": "node tools/index.mjs"
+  }
+}
