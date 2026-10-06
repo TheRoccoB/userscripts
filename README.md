@@ -62,3 +62,13 @@ Tampermonkey only updates when `@version` increases, so the pre-commit hook hand
 Versions are plain semver (`MAJOR.MINOR.PATCH`).
 
 If you commit from a GUI client, make sure `node` is on that client's `PATH`, or the hook will fail.
+
+## Claude Code
+
+Run Claude Code in this folder with the Claude in Chrome extension connected, then:
+
+```
+/userscript on <site>, <what it should do>
+```
+
+The skill (`.claude/skills/userscript/SKILL.md`) inspects the live page, scaffolds or edits the script, tests it in the page, commits and pushes, and opens the install link.
