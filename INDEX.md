@@ -7,3 +7,4 @@ Click **Install** with Tampermonkey enabled. Installed scripts auto-update from 
 | Script | Description | Runs on | Version | Install |
 | --- | --- | --- | --- | --- |
 | [React Bootcamp fixes](scripts/reactbootcamp-fixes.user.js) | Sticky failure toasts + Ctrl/Cmd+Enter to submit | `https://www.reactbootcamp.com/learn/*`<br>`https://reactbootcamp.com/learn/*` | 1.0.0 | [Install](https://raw.githubusercontent.com/TheRoccoB/userscripts/main/scripts/reactbootcamp-fixes.user.js) |
+| [Youtube Theater Focus](scripts/youtube-theater-focus.user.js) | Theater mode shows only the video; turns off autoplay-next and hides end-screen cards | `https://www.youtube.com/*` | 1.0.0 | [Install](https://raw.githubusercontent.com/TheRoccoB/userscripts/main/scripts/youtube-theater-focus.user.js) |
