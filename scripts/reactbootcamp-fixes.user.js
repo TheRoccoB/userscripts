@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         React Bootcamp fixes
 // @namespace    https://www.reactbootcamp.com/
-// @version      1.1.0
-// @description  Sticky failure toasts, Ctrl/Cmd+Enter to submit, and a toggle to pause the live preview while typing
+// @version      1.2.0
+// @description  Sticky failure toasts, Ctrl/Cmd+Enter to submit, a toggle to pause the live preview while typing, and a draggable editor/preview split
 // @author       Rocco Balsamo
 // @match        https://www.reactbootcamp.com/learn/*
 // @match        https://reactbootcamp.com/learn/*
@@ -25,6 +25,8 @@
     const TOGGLE_HINT = `Toggle auto-refresh of the preview (${ALT}+R)`;
     const REFRESH_HINT = `Refresh the preview now (${MOD}+S)`;
     const AUTO_KEY = 'rb-autorefresh';
+    const SPLIT_KEY = 'rb-split';
+    const SPLIT_HINT = 'Drag to resize the editor and preview (double-click to reset)';
 
     // ---------- Submit shortcut ----------
 
@@ -224,12 +226,122 @@
         refresh.classList.toggle('rb-pending', pending !== null);
     }
 
+    // ---------- Resizable editor/preview split ----------
+
+    // The editor and preview are the first two rows of a grid
+    // (1fr / 1fr / submit bar). We rewrite those row sizes as fractions.
+    let splitFrac = readSplit();
+
+    function readSplit() {
+        try {
+            const v = parseFloat(localStorage.getItem(SPLIT_KEY));
+            if (v > 0 && v < 1) {
+                return v;
+            }
+        } catch (err) {
+            // Storage blocked; fall back to the site's 50/50.
+        }
+        return null;
+    }
+
+    function saveSplit() {
+        try {
+            if (splitFrac === null) {
+                localStorage.removeItem(SPLIT_KEY);
+            } else {
+                localStorage.setItem(SPLIT_KEY, String(splitFrac));
+            }
+        } catch (err) {
+            // Storage blocked; the split just won't persist.
+        }
+    }
+
+    function getSplitGrid() {
+        if (!previewFrame || !previewFrame.parentElement) {
+            return null;
+        }
+        return previewFrame.parentElement.parentElement;
+    }
+
+    function applySplit() {
+        const grid = getSplitGrid();
+        if (!grid) {
+            return;
+        }
+        let rows = '';
+        if (splitFrac !== null) {
+            rows = `minmax(0px, ${splitFrac}fr) minmax(0px, ${1 - splitFrac}fr) auto`;
+        } else {
+            rows = 'minmax(0px, 1fr) minmax(0px, 1fr) auto';
+        }
+        // Only write on change, since this runs from the MutationObserver.
+        if (grid.style.gridTemplateRows !== rows) {
+            grid.style.gridTemplateRows = rows;
+        }
+    }
+
+    function ensureSplitHandle() {
+        const grid = getSplitGrid();
+        if (!grid) {
+            return;
+        }
+        const pane = previewFrame.parentElement;
+        applySplit();
+        if (pane.querySelector('#rb-split-handle')) {
+            return;
+        }
+
+        const handle = document.createElement('div');
+        handle.id = 'rb-split-handle';
+        handle.title = SPLIT_HINT;
+
+        handle.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            handle.setPointerCapture(e.pointerId);
+            handle.classList.add('rb-dragging');
+            // The iframe would swallow pointer events mid-drag.
+            previewFrame.style.pointerEvents = 'none';
+
+            const onMove = (ev) => {
+                const rect = grid.getBoundingClientRect();
+                const bar = grid.children[2];
+                const barHeight = bar ? bar.getBoundingClientRect().height : 0;
+                let frac = (ev.clientY - rect.top) / (rect.height - barHeight);
+                frac = Math.min(0.9, Math.max(0.1, frac));
+                splitFrac = frac;
+                applySplit();
+            };
+
+            const onUp = () => {
+                handle.removeEventListener('pointermove', onMove);
+                handle.removeEventListener('pointerup', onUp);
+                handle.removeEventListener('pointercancel', onUp);
+                handle.classList.remove('rb-dragging');
+                previewFrame.style.pointerEvents = '';
+                saveSplit();
+            };
+
+            handle.addEventListener('pointermove', onMove);
+            handle.addEventListener('pointerup', onUp);
+            handle.addEventListener('pointercancel', onUp);
+        });
+
+        handle.addEventListener('dblclick', () => {
+            splitFrac = null;
+            saveSplit();
+            applySplit();
+        });
+
+        pane.appendChild(handle);
+    }
+
     function scanPage() {
         const frame = document.querySelector('iframe[title="preview"]');
         if (frame && frame !== previewFrame) {
             patchPreview(frame);
         }
         ensureControls();
+        ensureSplitHandle();
         labelSubmitButton();
     }
 
@@ -308,6 +420,19 @@
             background: #0b3d91;
             border-color: #5b9bff;
             color: #fff;
+        }
+        #rb-split-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            z-index: 11;
+            cursor: row-resize;
+        }
+        #rb-split-handle:hover,
+        #rb-split-handle.rb-dragging {
+            background: rgba(91, 155, 255, 0.6);
         }
         .rb-sticky-toast button {
             position: absolute;
